@@ -1,0 +1,17 @@
+# Environment variables (NEVER commit secrets!)
+.env
+
+# SQLite Database & Storage
+*.db
+*.sqlite3
+
+# Python cache & virtual environments
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+env/
+
+# Logs
+*.log

@@ -35,6 +35,9 @@ class Config:
         "other": {"name": "⚡ General Ecosystem", "code": "other"}
     }
     
+    # Startup Banner Image
+    STARTUP_IMAGE_PATH: str = os.getenv("STARTUP_IMAGE_PATH", "assets/startup.jpg")
+
     # Database path
     DATABASE_PATH: str = os.getenv("DATABASE_PATH", "ghost_support.db")
 

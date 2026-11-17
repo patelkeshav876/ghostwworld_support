@@ -8,7 +8,7 @@ from keyboards import (
     get_cancel_keyboard,
     get_admin_subscription_review_keyboard
 )
-from utils.helpers import escape_html, format_user_mention
+from utils.helpers import escape_html, format_user_mention, safe_edit_message
 from config import config
 
 logger = logging.getLogger(__name__)
@@ -35,8 +35,9 @@ async def subscription_menu_callback(update: Update, context: ContextTypes.DEFAU
         f"• <b>Refund / Billing Inquiry:</b> Open a high-priority ticket with our billing department."
     )
     
-    await query.edit_message_text(
-        text,
+    await safe_edit_message(
+        query=query,
+        text=text,
         reply_markup=get_subscription_options_keyboard(),
         parse_mode="HTML"
     )
@@ -67,7 +68,7 @@ async def plans_info_callback(update: Update, context: ContextTypes.DEFAULT_TYPE
         [InlineKeyboardButton("🔙 Back to Billing", callback_data="btn_subscriptions")]
     ]
     
-    await query.edit_message_text(text, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode="HTML")
+    await safe_edit_message(query=query, text=text, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode="HTML")
 
 # --- Proof Submission Wizard ---
 
@@ -80,8 +81,9 @@ async def start_proof_submission(update: Update, context: ContextTypes.DEFAULT_T
         "Which product or service did you purchase?"
     )
     
-    await query.edit_message_text(
-        text,
+    await safe_edit_message(
+        query=query,
+        text=text,
         reply_markup=get_products_keyboard("subprod"),
         parse_mode="HTML"
     )
@@ -102,8 +104,9 @@ async def proof_product_selected(update: Update, context: ContextTypes.DEFAULT_T
         f"Type and send the plan name:"
     )
     
-    await query.edit_message_text(
-        text,
+    await safe_edit_message(
+        query=query,
+        text=text,
         reply_markup=get_cancel_keyboard(),
         parse_mode="HTML"
     )
@@ -208,8 +211,9 @@ async def cancel_proof_wizard(update: Update, context: ContextTypes.DEFAULT_TYPE
     await query.answer("Cancelled.")
     context.user_data.clear()
     
-    await query.edit_message_text(
-        "❌ Payment submission cancelled.",
+    await safe_edit_message(
+        query=query,
+        text="❌ Payment submission cancelled.",
         reply_markup=InlineKeyboardMarkup([
             [InlineKeyboardButton("🏠 Back to Main Menu", callback_data="btn_main_menu")]
         ])

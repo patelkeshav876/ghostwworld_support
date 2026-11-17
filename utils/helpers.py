@@ -36,3 +36,51 @@ def parse_deep_link(args_str: str) -> dict:
     if len(parts) == 1:
         return {"action": parts[0], "param": None}
     return {"action": parts[0], "param": parts[1]}
+
+async def safe_edit_message(query, text: str, reply_markup=None, parse_mode: str = "HTML", disable_web_page_preview: bool = True):
+    """
+    Safely edits a message regardless of whether it's a photo message or text message.
+    If it's a photo message and the caption fits (<= 1024 chars), edits the caption.
+    Otherwise, deletes the message and sends a new text message.
+    """
+    if query.message and query.message.photo:
+        if len(text) <= 1024:
+            try:
+                await query.edit_message_caption(
+                    caption=text,
+                    reply_markup=reply_markup,
+                    parse_mode=parse_mode
+                )
+                return
+            except Exception:
+                pass
+        
+        # If caption edit fails or text exceeds 1024 chars, delete photo message and send text
+        try:
+            await query.message.delete()
+        except Exception:
+            pass
+            
+        await query.message.chat.send_message(
+            text=text,
+            reply_markup=reply_markup,
+            parse_mode=parse_mode,
+            disable_web_page_preview=disable_web_page_preview
+        )
+    else:
+        try:
+            await query.edit_message_text(
+                text=text,
+                reply_markup=reply_markup,
+                parse_mode=parse_mode,
+                disable_web_page_preview=disable_web_page_preview
+            )
+        except Exception as e:
+            if "Message is not modified" not in str(e):
+                await query.message.reply_text(
+                    text=text,
+                    reply_markup=reply_markup,
+                    parse_mode=parse_mode,
+                    disable_web_page_preview=disable_web_page_preview
+                )
+

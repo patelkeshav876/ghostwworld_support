@@ -8,7 +8,7 @@ from keyboards import (
     get_admin_ticket_keyboard,
     get_csat_keyboard
 )
-from utils.helpers import escape_html, format_user_mention, generate_ticket_id
+from utils.helpers import escape_html, format_user_mention, generate_ticket_id, safe_edit_message
 from utils.telegram_features import create_ticket_topic, try_set_reaction
 from config import config
 
@@ -30,10 +30,13 @@ async def start_ticket_creation(update: Update, context: ContextTypes.DEFAULT_TY
     user = update.effective_user
     active_ticket = await db.get_active_ticket_for_user(user.id)
     if active_ticket:
-        await query.edit_message_text(
-            f"ℹ️ <b>Active Ticket Already Open</b>\n\n"
-            f"You currently have ticket <code>{active_ticket['ticket_id']}</code> open.\n"
-            f"You can simply type your message or upload files directly in this chat, and our agents will receive it!",
+        await safe_edit_message(
+            query=query,
+            text=(
+                f"ℹ️ <b>Active Ticket Already Open</b>\n\n"
+                f"You currently have ticket <code>{active_ticket['ticket_id']}</code> open.\n"
+                f"You can simply type your message or upload files directly in this chat, and our agents will receive it!"
+            ),
             reply_markup=InlineKeyboardMarkup([
                 [InlineKeyboardButton("🏠 Main Menu", callback_data="btn_main_menu")]
             ]),
@@ -46,8 +49,9 @@ async def start_ticket_creation(update: Update, context: ContextTypes.DEFAULT_TY
         "Which product or bot do you need assistance with?"
     )
     
-    await query.edit_message_text(
-        text,
+    await safe_edit_message(
+        query=query,
+        text=text,
         reply_markup=get_products_keyboard("tickprod"),
         parse_mode="HTML"
     )
@@ -71,8 +75,9 @@ async def ticket_product_selected(update: Update, context: ContextTypes.DEFAULT_
         f"<b>Step 2/3:</b> What category best describes your issue?"
     )
     
-    await query.edit_message_text(
-        text,
+    await safe_edit_message(
+        query=query,
+        text=text,
         reply_markup=InlineKeyboardMarkup(keyboard),
         parse_mode="HTML"
     )
@@ -92,8 +97,9 @@ async def ticket_category_selected(update: Update, context: ContextTypes.DEFAULT
         "<i>Type or send your message now:</i>"
     )
     
-    await query.edit_message_text(
-        text,
+    await safe_edit_message(
+        query=query,
+        text=text,
         reply_markup=get_cancel_keyboard(),
         parse_mode="HTML"
     )
@@ -232,8 +238,9 @@ async def cancel_ticket_wizard(update: Update, context: ContextTypes.DEFAULT_TYP
     await query.answer("Cancelled.")
     context.user_data.clear()
     
-    await query.edit_message_text(
-        "❌ Ticket creation cancelled.",
+    await safe_edit_message(
+        query=query,
+        text="❌ Ticket creation cancelled.",
         reply_markup=InlineKeyboardMarkup([
             [InlineKeyboardButton("🏠 Back to Main Menu", callback_data="btn_main_menu")]
         ])
@@ -354,8 +361,9 @@ async def my_tickets_callback(update: Update, context: ContextTypes.DEFAULT_TYPE
     tickets = await db.get_user_tickets(user.id, limit=5)
     
     if not tickets:
-        await query.edit_message_text(
-            "📋 <b>Your Support Tickets</b>\n\nYou haven't submitted any tickets yet.",
+        await safe_edit_message(
+            query=query,
+            text="📋 <b>Your Support Tickets</b>\n\nYou haven't submitted any tickets yet.",
             reply_markup=InlineKeyboardMarkup([
                 [InlineKeyboardButton("💬 Open a Ticket", callback_data="btn_new_ticket")],
                 [InlineKeyboardButton("🏠 Main Menu", callback_data="btn_main_menu")]
@@ -373,8 +381,9 @@ async def my_tickets_callback(update: Update, context: ContextTypes.DEFAULT_TYPE
             f"<i>{escape_html(t['description'][:60])}...</i>\n\n"
         )
         
-    await query.edit_message_text(
-        text,
+    await safe_edit_message(
+        query=query,
+        text=text,
         reply_markup=InlineKeyboardMarkup([
             [InlineKeyboardButton("🏠 Main Menu", callback_data="btn_main_menu")]
         ]),
@@ -397,8 +406,9 @@ async def csat_rating_callback(update: Update, context: ContextTypes.DEFAULT_TYP
         f"Your feedback helps us continuously improve our support experience."
     )
     
-    await query.edit_message_text(
-        thanks_text,
+    await safe_edit_message(
+        query=query,
+        text=thanks_text,
         reply_markup=InlineKeyboardMarkup([
             [InlineKeyboardButton("🏠 Main Menu", callback_data="btn_main_menu")]
         ]),

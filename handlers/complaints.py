@@ -3,7 +3,7 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes, ConversationHandler
 from database import db
 from keyboards import get_products_keyboard, get_cancel_keyboard
-from utils.helpers import escape_html, format_user_mention, generate_ticket_id
+from utils.helpers import escape_html, format_user_mention, generate_ticket_id, safe_edit_message
 from utils.telegram_features import create_ticket_topic
 from config import config
 
@@ -22,8 +22,9 @@ async def start_complaint_flow(update: Update, context: ContextTypes.DEFAULT_TYP
         "<b>Step 1/3:</b> Which service or bot is this complaint regarding?"
     )
     
-    await query.edit_message_text(
-        text,
+    await safe_edit_message(
+        query=query,
+        text=text,
         reply_markup=get_products_keyboard("compprod"),
         parse_mode="HTML"
     )
@@ -44,8 +45,9 @@ async def complaint_product_selected(update: Update, context: ContextTypes.DEFAU
         f"Type your complaint below:"
     )
     
-    await query.edit_message_text(
-        text,
+    await safe_edit_message(
+        query=query,
+        text=text,
         reply_markup=get_cancel_keyboard(),
         parse_mode="HTML"
     )
@@ -152,8 +154,9 @@ async def cancel_complaint_wizard(update: Update, context: ContextTypes.DEFAULT_
     await query.answer("Cancelled.")
     context.user_data.clear()
     
-    await query.edit_message_text(
-        "❌ Complaint filing cancelled.",
+    await safe_edit_message(
+        query=query,
+        text="❌ Complaint filing cancelled.",
         reply_markup=InlineKeyboardMarkup([
             [InlineKeyboardButton("🏠 Back to Main Menu", callback_data="btn_main_menu")]
         ])

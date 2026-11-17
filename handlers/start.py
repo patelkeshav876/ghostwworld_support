@@ -1,9 +1,10 @@
 import logging
+import os
 from telegram import Update
 from telegram.ext import ContextTypes
 from database import db
 from keyboards import get_main_menu_keyboard
-from utils.helpers import escape_html, parse_deep_link
+from utils.helpers import escape_html, parse_deep_link, safe_edit_message
 from config import config
 
 logger = logging.getLogger(__name__)
@@ -54,6 +55,21 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"Status: <b>{active_ticket['status']}</b>. You can reply anytime directly here to send messages to our agents."
         )
 
+    # Check if startup image exists
+    startup_img = config.STARTUP_IMAGE_PATH
+    if os.path.exists(startup_img):
+        try:
+            with open(startup_img, "rb") as photo:
+                await update.message.reply_photo(
+                    photo=photo,
+                    caption=welcome_text,
+                    reply_markup=get_main_menu_keyboard(has_active_ticket=bool(active_ticket)),
+                    parse_mode="HTML"
+                )
+                return
+        except Exception as e:
+            logger.error(f"Failed to send startup image: {e}")
+
     await update.message.reply_text(
         welcome_text,
         reply_markup=get_main_menu_keyboard(has_active_ticket=bool(active_ticket)),
@@ -75,8 +91,9 @@ async def main_menu_callback(update: Update, context: ContextTypes.DEFAULT_TYPE)
     if active_ticket:
         text += f"\n\n📌 <b>Active Ticket:</b> <code>{active_ticket['ticket_id']}</code> ({active_ticket['status']})"
         
-    await query.edit_message_text(
-        text,
+    await safe_edit_message(
+        query=query,
+        text=text,
         reply_markup=get_main_menu_keyboard(has_active_ticket=bool(active_ticket)),
         parse_mode="HTML",
         disable_web_page_preview=True

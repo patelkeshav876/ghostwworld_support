@@ -3,6 +3,7 @@ from telegram.ext import ContextTypes
 from keyboards import get_family_keyboard
 from database import db
 from config import config
+from utils.helpers import safe_edit_message
 
 async def family_menu_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
@@ -26,8 +27,9 @@ async def family_menu_callback(update: Update, context: ContextTypes.DEFAULT_TYP
         f"Choose an option below to connect with us:"
     )
     
-    await query.edit_message_text(
-        text,
+    await safe_edit_message(
+        query=query,
+        text=text,
         reply_markup=get_family_keyboard(),
         parse_mode="HTML",
         disable_web_page_preview=True
@@ -58,8 +60,9 @@ async def referral_info_callback(update: Update, context: ContextTypes.DEFAULT_T
         [InlineKeyboardButton("🏠 Main Menu", callback_data="btn_main_menu")]
     ]
     
-    await query.edit_message_text(
-        text,
+    await safe_edit_message(
+        query=query,
+        text=text,
         reply_markup=InlineKeyboardMarkup(keyboard),
         parse_mode="HTML"
     )

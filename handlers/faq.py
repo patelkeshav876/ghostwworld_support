@@ -1,5 +1,6 @@
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
+from utils.helpers import safe_edit_message
 
 FAQ_ITEMS = {
     "faq_webapp_login": {
@@ -57,8 +58,9 @@ async def faq_menu_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "Select a topic below for instant solutions to common issues:"
     )
     
-    await query.edit_message_text(
-        text,
+    await safe_edit_message(
+        query=query,
+        text=text,
         reply_markup=InlineKeyboardMarkup(keyboard),
         parse_mode="HTML"
     )
@@ -71,9 +73,13 @@ async def faq_detail_callback(update: Update, context: ContextTypes.DEFAULT_TYPE
     item = FAQ_ITEMS.get(faq_key)
     
     if not item:
-        await query.edit_message_text("Topic not found.", reply_markup=InlineKeyboardMarkup([
-            [InlineKeyboardButton("🔙 Back to FAQ", callback_data="btn_faq")]
-        ]))
+        await safe_edit_message(
+            query=query,
+            text="Topic not found.",
+            reply_markup=InlineKeyboardMarkup([
+                [InlineKeyboardButton("🔙 Back to FAQ", callback_data="btn_faq")]
+            ])
+        )
         return
 
     keyboard = [
@@ -81,8 +87,9 @@ async def faq_detail_callback(update: Update, context: ContextTypes.DEFAULT_TYPE
         [InlineKeyboardButton("🔙 Back to FAQ List", callback_data="btn_faq")]
     ]
     
-    await query.edit_message_text(
-        item["answer"],
+    await safe_edit_message(
+        query=query,
+        text=item["answer"],
         reply_markup=InlineKeyboardMarkup(keyboard),
         parse_mode="HTML"
     )
